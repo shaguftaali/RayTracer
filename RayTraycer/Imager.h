@@ -70,6 +70,11 @@ namespace Imager
 
 		double DotProduct(const Vector3 &a, const Vector3 &b)
 		{
+			return (a.x*b.x)+(a.y*b.y)+(a.z*b.z);
+		}
+
+		Vector3 CrossProduct(const Vector3 &a, const Vector3 &b)
+		{
 			return Vector3(
 				(a.y*b.z)-(a.z-b.y),
 				(a.x*b.z)-(a.z*b.z),
