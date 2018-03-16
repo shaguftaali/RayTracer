@@ -1,5 +1,6 @@
 #pragma once
-#include<math.h>
+#include<cmath>
+
 namespace Imager
 {
 	class Vector3
@@ -39,6 +40,41 @@ namespace Imager
 			return Vector3(x/mag,y/mag,z/mag);
 		}
 
+		Vector3& operator +=(const Vector3& other)
+		{
+			x+=other.x;
+			y+=other.y;
+			z+=other.z;
+			return *this;
+		}
 
+		Vector3& operator *=(const Vector3& other)
+		{
+			x *= other.x;
+			y *= other.y;
+			z *= other.z;
+			return *this;
+		}
+
+		
+
+		Vector3 operator + (const Vector3 &a, const Vector3 &b)
+		{
+			return Vector3(a.x + b.x, a.y + b.y, a.z + b.z);
+		}
+
+		Vector3 operator - (const Vector3 &a, const Vector3 &b)
+		{
+			return Vector3(a.x - b.x, a.y - b.y, a.z - b.z);
+		}
+
+		double DotProduct(const Vector3 &a, const Vector3 &b)
+		{
+			return Vector3(
+				(a.y*b.z)-(a.z-b.y),
+				(a.x*b.z)-(a.z*b.z),
+				(a.x*b.y)-(a.y*b.x),
+			)
+		}
 	};
 }
