@@ -1,9 +1,12 @@
 #pragma once
 #include<cmath>
 #include<string>
+#include<vector>
 
 namespace Imager
 {
+
+	const double EPSILON = 1.0e-6;
 	// Forward declarations
 	class SolidObject;
 
@@ -204,14 +207,22 @@ namespace Imager
 	const double REFRACTION_MINIMUM = 1.0000;
 	const double REFRACTION_MAXIMUM = 9.0000;
 
-	
+	inline void ValidateRefraction(double refraction)
+	{
+		if (refraction < REFRACTION_MINIMUM ||
+			refraction > REFRACTION_MAXIMUM)
+		{
+			throw ImageException("Invalid refractive index.");
+		}
+	}
+
 
 	
 
 	class Taggable
 	{
 	public:
-		Taggable(std::string _tag)
+		Taggable(std::string _tag="")
 		{
 			tag=_tag;
 		}
@@ -258,7 +269,7 @@ namespace Imager
 		void SetGlossColor(const Color& _glossColor);
 		void SetOpacity(double _opacity);
 
-		void SetMatteGlossBalance(double glossFactor,const Color& rawMatteColor, Color& rawGlossColor);
+		void SetMatteGlossBalance(double glossFactor,const Color& rawMatteColor, const Color& rawGlossColor);
 
 		const Color& GetMatteColor() const;
 
@@ -274,8 +285,232 @@ namespace Imager
 		double opacity;
 	};
 
-	
 
+	struct  Intersection
+	{
+		double distanceSquared;
+
+		Vector3 point;
+
+		Vector3 surfaceNormal;
+
+		// A pointer to the solid object that the ray
+		// intersected with.
+		const SolidObject* solid;
+
+		Intersection()
+		{
+			distanceSquared=1.0e+20;
+			
+		}
+			 
+	};
+
+
+	typedef std::vector<Intersection> IntersectionList;
+
+	int PickClosestIntersection(
+		const IntersectionList& list,
+		Intersection& intersection);
+	
+	class SolidObject:public Taggable
+	{
+	public:
+
+		SolidObject(const Vector3& _center=Vector3(),bool _isFullyEnclosed=true);
+		
+		virtual void AppendAllIntersections(const Vector3& vantage, const Vector3& direction, IntersectionList& intersectionList)const=0;
+
+		int FindClosestIntersection(const Vector3& vantage, const Vector3& direction, Intersection& intersection)const;
+
+		virtual bool Contains(const Vector3& point)const;
+
+		virtual Optics SurfaceOptics(const Vector3& surfacePoint, const void *context)const;
+
+		double GetRefractiveIndex() const;
+
+		virtual SolidObject& RotateX(double angleInDegrees)=0;
+
+		virtual SolidObject& RotateY(double angleInDegrees) = 0;
+
+		virtual SolidObject& RotateZ(double angleInDegrees) = 0;
+
+		virtual SolidObject& Translate(double dx,double dy, double dz);
+
+		SolidObject& Move(double cx, double cy,double cz);
+
+		SolidObject& Move(const Vector3& newCenter);
+
+		const Vector3& Center() const;
+
+		void SetUniformOptics(const Optics& optics);
+
+		void SetMatteGlossBalance(double glossFactor, const Color& rawMatte, const Color& rawGlossColor);
+
+		void SetFullMatte(const Color& matteColor);
+
+		void SetOptics(const double opatics);
+
+		void SetRefraction(const double refraction);
+	
+	protected:
+		const Optics& GetUniformOptics() const;
+
+	private:
+		Vector3 center;
+
+		Optics uniformOptics;
+
+		double refractiveIndex;
+
+		const bool isFullyEnclosed;
+
+		mutable IntersectionList cachedIntersectionList;
+		mutable IntersectionList enclosedList;
+	};
+
+
+	class Sphere :public SolidObject
+	{
+	public:
+		Sphere(const Vector3& _center,double radius);
+
+		virtual void AppendAllIntersections(const Vector3& vantage, const Vector3& direction, IntersectionList& intersectionList)const = 0;
+
+		virtual bool Contains(const Vector3& point) const;
+
+		virtual SolidObject& RotateX(double angleInDegrees);
+		virtual SolidObject& RotateY(double angleInDegrees);
+		virtual SolidObject& RotateZ(double angleInDegrees);
+
+	private:
+		double radius;
+	};
+
+	
+	class Scene
+	{
+	public:
+		Scene(const Color& _backgroundColor=Color());
+
+		void AddLightSource(const LightSource &lightSource);
+
+		SolidObject& AddSolidObject(SolidObject* solidObject);
+
+		void SaveImage(const char* outPngFileName, size_t pixelWide,size_t pixelHigh,double zoom, size_t antiAliasFactor)const;
+
+		void SetAmbientRefraction(double refraction);
+
+		void AddDebugPoint(int iPixel,int jPixel);
+
+
+		
+	private:
+		void ClearSolidObjectList();
+		
+		int FindClosestIntersectionPoint(const Vector3& vantage,const Vector3& direction, Intersection& intersection) const;
+
+		bool HasClearLineOfSight(const Vector3& point1, const Vector3& point2) const;
+
+		Color TarceRay(const Vector3& vantage, const Vector3& direction, double refractiveIndex, Color rayIntensity, int recurtionDepth) const;
+
+		Color CalculateLighting(const Intersection& intersection, const Vector3& direction, double refractiveIndex, Color rayIntensity, int recursionDepth)const;
+
+		Color CalculateMatte(const Intersection& intersection) const;
+
+
+		Color CalculateReflection(
+			const Intersection& intersection,
+			const Vector3& incidentDir,
+			double refectiveIndex,
+			Color rayIntensity,
+			int recurtionDepth)const;
+
+		Color CalculateRefraction(
+			const Intersection& intersection,
+			const Vector3& direction,
+			double sourceRefectiveIndex,
+			Color rayIntensity,
+			int recurtionDepth,
+			double& outRefrectionFactor)const;
+
+		const SolidObject* PrimaryContainer(const Vector3& point) const;
+
+		double PolarizedReflection(
+			double n1,                           // source material's index of refraction
+			double n2,                          // target material's index of refraction
+			double cos_a1,                     // incident or outgoing ray angle cosine
+			double cos_a2)const;              // outgoing or incident ray angle cosine
+
+		void ResolveAmbiguousPixel(ImageBuffer& buffer, size_t i, size_t j) const;
+
+		// Convert a floating point color component value, 
+		// based on the maximum component value,
+		// to a byte RGB value in the range 0x00 to 0xff.
+		static unsigned char ConvertPixelValue(
+			double colorComponent,
+			double maxColorValue);
+
+
+		Color backgroundColor;
+
+		typedef std::vector<SolidObject*> SolidObjectList;
+		typedef std::vector<LightSource> LightSourceList;
+
+		struct PixelCoordinates
+		{
+			size_t i;
+			size_t j;
+
+			PixelCoordinates(size_t _i, size_t _j)
+			{
+				i=_i;
+				j=_j;
+			}
+
+		};
+
+		typedef std::vector<PixelCoordinates> PixelList;
+
+		SolidObjectList solidObjectList;
+
+		LightSourceList lightSourceList;
+
+
+		double ambientRefraction;
+
+		mutable IntersectionList cachedIntersectionList;
+
+		struct DebugPoint
+		{
+			int     iPixel;
+			int     jPixel;
+
+			DebugPoint(int _iPixel, int _jPixel)
+				: iPixel(_iPixel)
+				, jPixel(_jPixel)
+			{}
+		};
+		typedef std::vector<DebugPoint> DebugPointList;
+		DebugPointList debugPointList;
+		mutable const DebugPoint* activeDebugPoint;
+
+	};
+
+
+	struct PixelData
+	{
+		Color color;
+		bool isAmbiguous;
+
+		PixelData()
+			:color(),
+			isAmbiguous(false)
+		{
+		}
+
+	};
+	
 	
 	
 	

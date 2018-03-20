@@ -38,7 +38,7 @@ namespace Imager
 		opacity = _opacity;
 	}
 
-	void Optics::SetMatteGlossBalance(double glossFactor, const Color & rawMatteColor, Color & rawGlossColor)
+	void Optics::SetMatteGlossBalance(double glossFactor, const Color & rawMatteColor, const Color & rawGlossColor)
 	{
 		//TODO
 
@@ -48,6 +48,11 @@ namespace Imager
 		// levels to realistic ranges.
 		ValidateReflectionColor(rawMatteColor);
 		ValidateReflectionColor(rawGlossColor);
+		if (glossFactor<0.0 || glossFactor>1.0) {
+			throw ImageException("Gloss factor must be in range of 0 - 1");
+		}
+		SetMatteColor((1-glossFactor)*rawMatteColor);
+		SetGlossColor(glossFactor*rawGlossColor);
 	}
 
 	const Color & Optics::GetMatteColor() const

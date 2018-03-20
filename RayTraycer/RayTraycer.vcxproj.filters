@@ -35,5 +35,14 @@
     <ClCompile Include="Optics.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="SolidObject.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Sphere.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Imager.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>
