@@ -393,6 +393,9 @@ namespace Imager
 	public:
 		Scene(const Color& _backgroundColor=Color());
 
+		virtual ~Scene();
+
+
 		void AddLightSource(const LightSource &lightSource);
 
 		SolidObject& AddSolidObject(SolidObject* solidObject);
@@ -511,7 +514,31 @@ namespace Imager
 
 	};
 	
-	
+	class ImageBuffer
+	{
+	public:
+		ImageBuffer(
+			size_t _pixelWide,
+			size_t _pixelHigh,
+			const Color &backgroundColor);
+
+		virtual ~ImageBuffer();
+
+		PixelData& Pixel(size_t i,size_t j) const;
+
+		size_t GetPixelsWide() const;
+
+		size_t GetPixelHigh() const;
+
+		double MaxColorValue() const;
+
+	private:
+		size_t  pixelsWide;     // the width of the image in pixels (columns).
+		size_t  pixelsHigh;     // the height of the image in pixels (rows).
+		size_t  numPixels;      // the total number of pixels.
+		PixelData*  array;      // flattened array [pixelsWide * pixelsHigh].
+	};
+
 	
 	
 }

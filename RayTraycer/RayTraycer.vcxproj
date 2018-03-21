@@ -152,11 +152,13 @@
     <ClInclude Include="targetver.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="ImageBuffer.cpp" />
     <ClCompile Include="Imager.cpp" />
     <ClCompile Include="Optics.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="RayTraycer.cpp" />
+    <ClCompile Include="Scene.cpp" />
     <ClCompile Include="SolidObject.cpp" />
     <ClCompile Include="Sphere.cpp" />
     <ClCompile Include="stdafx.cpp">
