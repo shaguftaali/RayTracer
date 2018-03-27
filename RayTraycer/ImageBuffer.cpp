@@ -29,6 +29,7 @@ namespace Imager
 			throw ImageException("Pixel cordinates out of bound");
 		}
 	}
+
 	size_t ImageBuffer::GetPixelsWide() const
 	{
 		return pixelsWide;

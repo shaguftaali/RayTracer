@@ -1,4 +1,5 @@
 #include"Imager.h"
+#include"stdafx.h"
 
 namespace Imager
 {
@@ -11,7 +12,7 @@ namespace Imager
 	bool Sphere::Contains(const Vector3 & point) const
 	{
 		const double r=radius+EPSILON;
-		return (point-Center()).MagnetitudeSquared<=(r*r);
+		return (point-Center()).MagnetitudeSquared()<=(r*r);
 	}
 	SolidObject & Sphere::RotateX(double angleInDegrees)
 	{

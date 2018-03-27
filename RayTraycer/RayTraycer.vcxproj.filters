@@ -41,9 +41,6 @@
     <ClCompile Include="Sphere.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Imager.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="ImageBuffer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>

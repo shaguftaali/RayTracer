@@ -9,6 +9,9 @@ namespace Imager
 	const double EPSILON = 1.0e-6;
 	// Forward declarations
 	class SolidObject;
+	class ImageBuffer;
+
+	const int MAX_OPTICAL_RECURSION_DEPTH = 20;
 
 	class ImageException
 	{
@@ -24,7 +27,8 @@ namespace Imager
 		const char* const message;
 	};
 
-
+	class AmbiguousIntersectionException
+	{};
 
 	class Vector3
 	{
@@ -95,6 +99,11 @@ namespace Imager
 		return Vector3(a.x - b.x, a.y - b.y, a.z - b.z);
 	}
 
+	inline Vector3 operator - (const Vector3& a)
+	{
+		return Vector3(-a.x, -a.y, -a.z);
+	}
+
 	inline double DotProduct(const Vector3 &a, const Vector3 &b)
 	{
 		return (a.x*b.x) + (a.y*b.y) + (a.z*b.z);
@@ -108,6 +117,17 @@ namespace Imager
 			(a.x*b.y) - (a.y*b.x)
 		);
 	}
+
+	inline Vector3 operator * (double s, const Vector3& v)
+	{
+		return Vector3(s*v.x, s*v.y, s*v.z);
+	}
+
+	inline Vector3 operator / (const Vector3& v, double s)
+	{
+		return Vector3(v.x / s, v.y / s, v.z / s);
+	}
+
 
 	struct  Color
 	{
@@ -129,6 +149,13 @@ namespace Imager
 			blue=0.0;
 		}
 
+		Color& operator+=(const Color& other)
+		{
+			red += other.red;
+			green += other.green;
+			blue += other.blue;
+		}
+
 		Color& operator*=(const Color& other)
 		{
 			red*=other.red;
@@ -136,11 +163,12 @@ namespace Imager
 			blue*=other.blue;
 		}
 
-		Color& operator+=(const Color& other)
+		Color& operator *= (double factor)
 		{
-			red += other.red;
-			green += other.green;
-			blue += other.blue;
+			red *= factor;
+			green *= factor;
+			blue *= factor;
+			return *this;
 		}
 
 		Color& operator/=(const Color& other)
@@ -297,6 +325,8 @@ namespace Imager
 		// A pointer to the solid object that the ray
 		// intersected with.
 		const SolidObject* solid;
+
+		const void* context;
 
 		Intersection()
 		{
